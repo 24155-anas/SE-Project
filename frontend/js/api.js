@@ -2,7 +2,7 @@
 const api = {
     baseUrl: (window.location.port === '8000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? window.location.origin
-        : 'http://localhost:8000',
+        : 'http://127.0.0.1:8000',
     
     getToken: () => localStorage.getItem('milaap_token'),
     setToken: (token) => localStorage.setItem('milaap_token', token),
