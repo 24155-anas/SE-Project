@@ -9,12 +9,8 @@ from typing import AsyncGenerator
 from backend.config import settings
 
 # ── Engine ──────────────────────────────────────────────────────────────────
-db_url = settings.DATABASE_URL
-if db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
 engine = create_async_engine(
-    db_url,
+    settings.DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
 )
