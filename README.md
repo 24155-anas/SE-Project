@@ -1,4 +1,15 @@
+---
+title: Milaap AI
+emoji: 🔍
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # ☘ Milaap — AI-Powered Lost & Found for Lahore
+
 
 Milaap is an AI-powered Lost & Found web application for Lahore, Pakistan.
 Users submit lost or found item/person reports with images. The system
