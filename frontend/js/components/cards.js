@@ -100,46 +100,60 @@ const components = {
         const isMyLostReport = m.lost_report.user_id === currentUser.id;
         const otherReport = isMyLostReport ? m.found_report : m.lost_report;
         const pct = Math.round(m.similarity_score * 100);
+        const isPersonMatch = m.lost_report.report_type === 'person_missing' || m.lost_report.report_type === 'person_found';
 
         let actionArea = '';
         if (m.status === 'notified' || m.status === 'claimed') {
-            if (isMyLostReport) {
-                const btnText = m.status === 'claimed' ? 'Verify Ownership' : 'Yes, Claim This!';
-                const onClick = m.status === 'claimed' 
-                    ? `ui.openVerifyModal('${m.id}', '${m.lost_report.secret_question}', ${m.max_attempts - m.verification_attempts})`
-                    : `ui.claimMatch('${m.id}')`;
-
+            if (isPersonMatch) {
                 actionArea = `
                     <div class="space-y-4 pt-4 border-t border-slate-800">
-                        <p class="text-xs font-bold text-teal-400 flex items-center gap-2">💡 This looks like yours?</p>
+                        <p class="text-xs font-bold text-orange-400 flex items-center gap-2">💡 Is this the correct person?</p>
                         <div class="flex gap-4">
-                            <button onclick="${onClick}" class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all">${btnText}</button>
-                            <button onclick="ui.rejectMatch('${m.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all border border-slate-700">Not Mine</button>
+                            <button onclick="ui.notifyPersonMatch('${m.id}')" class="flex-1 bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold py-3 rounded-xl transition-all">Notify Other Party</button>
+                            <button onclick="ui.rejectMatch('${m.id}')" class="flex-[0.5] bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all border border-slate-700">Incorrect</button>
                         </div>
                     </div>
                 `;
             } else {
-                actionArea = `
-                    <div class="p-4 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-start gap-4">
-                        <div class="text-amber-500 mt-1"><i data-lucide="hourglass" class="w-5 h-5"></i></div>
-                        <div>
-                            <p class="text-sm font-bold text-amber-500 mb-1">Status: ${m.status === 'claimed' ? 'Owner is verifying...' : 'Waiting for owner...'}</p>
-                            <p class="text-xs text-slate-500">${m.status === 'claimed' ? 'Waiting for them to verify ownership through the secret question.' : 'Waiting for them to start the claim process.'}</p>
+                if (isMyLostReport) {
+                    const btnText = m.status === 'claimed' ? 'Verify Ownership' : 'Yes, Claim This!';
+                    const onClick = m.status === 'claimed' 
+                        ? `ui.openVerifyModal('${m.id}', '${m.lost_report.secret_question}', ${m.max_attempts - m.verification_attempts})`
+                        : `ui.claimMatch('${m.id}')`;
+
+                    actionArea = `
+                        <div class="space-y-4 pt-4 border-t border-slate-800">
+                            <p class="text-xs font-bold text-teal-400 flex items-center gap-2">💡 This looks like yours?</p>
+                            <div class="flex gap-4">
+                                <button onclick="${onClick}" class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all">${btnText}</button>
+                                <button onclick="ui.rejectMatch('${m.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all border border-slate-700">Not Mine</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    actionArea = `
+                        <div class="p-4 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-start gap-4">
+                            <div class="text-amber-500 mt-1"><i data-lucide="hourglass" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-sm font-bold text-amber-500 mb-1">Status: ${m.status === 'claimed' ? 'Owner is verifying...' : 'Waiting for owner...'}</p>
+                                <p class="text-xs text-slate-500">${m.status === 'claimed' ? 'Waiting for them to verify ownership through the secret question.' : 'Waiting for them to start the claim process.'}</p>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         } else if (m.status === 'verified' || m.status === 'connected') {
+            const btnColor = isPersonMatch ? 'orange' : 'teal';
             actionArea = `
-                <div class="p-4 bg-teal-500/10 rounded-2xl border border-teal-500/30 flex items-center justify-between">
+                <div class="p-4 bg-${btnColor}-500/10 rounded-2xl border border-${btnColor}-500/30 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="text-teal-400"><i data-lucide="check-circle-2" class="w-6 h-6"></i></div>
+                        <div class="text-${btnColor}-400"><i data-lucide="check-circle-2" class="w-6 h-6"></i></div>
                         <div>
-                            <p class="text-sm font-bold text-teal-400">Match Verified! ✅</p>
-                            <p class="text-xs text-slate-400">You can now coordinate collection.</p>
+                            <p class="text-sm font-bold text-${btnColor}-400">Match Verified! ✅</p>
+                            <p class="text-xs text-slate-400">You can now coordinate.</p>
                         </div>
                     </div>
-                    <button onclick="ui.resolveMatch('${m.id}')" class="text-xs font-black uppercase bg-teal-500 text-slate-950 px-4 py-2 rounded-lg hover:scale-105 transition-transform">Resolve</button>
+                    <button onclick="ui.resolveMatch('${m.id}')" class="text-xs font-black uppercase bg-${btnColor}-500 text-slate-950 px-4 py-2 rounded-lg hover:scale-105 transition-transform">Resolve</button>
                 </div>
             `;
         }

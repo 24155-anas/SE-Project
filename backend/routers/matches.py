@@ -211,6 +211,65 @@ async def verify_match(
             can_retry_at=can_retry_at,
         )
 
+@router.post("/{match_id}/notify_person", status_code=status.HTTP_200_OK)
+async def notify_person_match(
+    match_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Notify the other party in a person match, sharing contact info."""
+    result = await db.execute(select(Match).where(Match.id == match_id))
+    match = result.scalar_one_or_none()
+
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    lr = await db.execute(select(Report).where(Report.id == match.lost_report_id))
+    lost_report = lr.scalar_one()
+    fr = await db.execute(select(Report).where(Report.id == match.found_report_id))
+    found_report = fr.scalar_one()
+
+    if lost_report.report_type not in ("person_missing", "person_found"):
+        raise HTTPException(status_code=400, detail="Not a person match")
+
+    if current_user.id not in (lost_report.user_id, found_report.user_id):
+        raise HTTPException(status_code=403, detail="You are not authorized for this match")
+
+    if match.status != "notified":
+        raise HTTPException(status_code=400, detail="Match is not in notified state")
+
+    match.status = "connected"
+    match.connected_at = datetime.now(timezone.utc)
+
+    lu = await db.execute(select(User).where(User.id == lost_report.user_id))
+    lost_user = lu.scalar_one()
+    fu = await db.execute(select(User).where(User.id == found_report.user_id))
+    found_user = fu.scalar_one()
+
+    # In-app notifications with contact info
+    if lost_report.user_id != current_user.id:
+        db.add(Notification(
+            user_id=lost_report.user_id,
+            type="person_match",
+            title="Person Match Accepted ✅",
+            message=f"The reporter of '{found_report.title}' believes this is a match! Contact them at: {found_user.email}",
+            related_report_id=lost_report.id,
+            related_match_id=match.id,
+        ))
+        
+    if found_report.user_id != current_user.id:
+        db.add(Notification(
+            user_id=found_report.user_id,
+            type="person_match",
+            title="Person Match Accepted ✅",
+            message=f"The reporter of '{lost_report.title}' believes this is a match! Contact them at: {lost_user.email}",
+            related_report_id=found_report.id,
+            related_match_id=match.id,
+        ))
+
+    return {"detail": "Match accepted. Both parties notified with contact info."}
+
+
 @router.patch("/{match_id}/resolve", status_code=status.HTTP_200_OK)
 async def resolve_match(
     match_id: UUID,
@@ -258,12 +317,19 @@ async def reject_match(
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
         
-    # Verify the user owns the lost report
     lr_r = await db.execute(select(Report).where(Report.id == match.lost_report_id))
-    lr = lr_r.scalar_one_or_none()
+    lr = lr_r.scalar_one()
+    fr_r = await db.execute(select(Report).where(Report.id == match.found_report_id))
+    fr = fr_r.scalar_one()
+
+    is_person_match = lr.report_type in ("person_missing", "person_found")
     
-    if not lr or lr.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Only the owner of the lost report can reject the match")
+    if is_person_match:
+        if current_user.id not in (lr.user_id, fr.user_id):
+            raise HTTPException(status_code=403, detail="Not authorized to reject this match")
+    else:
+        if lr.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Only the owner of the lost report can reject the match")
 
     match.status = "rejected"
     match.rejected_at = datetime.now(timezone.utc)

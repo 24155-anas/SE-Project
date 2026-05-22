@@ -30,7 +30,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # ── Constants ───────────────────────────────────────────────────────────────
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/jpg"}
-MATCH_THRESHOLD = 0.70
+MATCH_THRESHOLD = 0.80
 
 VALID_REPORT_TYPES = ("lost", "found", "person_missing", "person_found")
 

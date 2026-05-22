@@ -60,10 +60,10 @@ async def create_matches_from_search(
         if not matching_report:
             continue
 
-        # Person reports auto-connect
+        # Person reports start as notified
         if new_report.report_type in ("person_missing", "person_found"):
-            match_status = "connected"
-            connected_at = datetime.now(timezone.utc)
+            match_status = "notified"
+            connected_at = None
             notif_type = "person_match"
         else:
             match_status = "notified"

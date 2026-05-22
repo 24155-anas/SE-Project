@@ -359,6 +359,21 @@ const ui = {
         } finally {
             utils.spin(false);
         }
+    },
+
+    async notifyPersonMatch(matchId) {
+        if (!confirm('Are you sure you want to accept this match? Your contact information will be shared with the other party.')) return;
+        utils.spin(true);
+        try {
+            await api.post(`/matches/${matchId}/notify_person`);
+            utils.toast('Match accepted! Check notifications for contact info.', 'success');
+            matchesPage.render();
+            notificationsPanel.loadCount();
+        } catch (err) {
+            utils.toast(err.message, 'error');
+        } finally {
+            utils.spin(false);
+        }
     }
 };
 
