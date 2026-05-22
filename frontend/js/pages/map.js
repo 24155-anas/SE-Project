@@ -75,6 +75,13 @@ const mapPage = {
                     })
                 }).addTo(this.map);
 
+                marker.bindTooltip(hub.name, {
+                    permanent: true,
+                    direction: 'top',
+                    offset: [0, -35],
+                    className: 'custom-map-tooltip animate-in fade-in zoom-in duration-300'
+                });
+
                 marker.on('click', () => this.selectHub(hub));
                 
                 // Add to sidebar list

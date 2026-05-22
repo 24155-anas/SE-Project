@@ -353,3 +353,24 @@ h1, h2, h3, .brand-font {
     border-radius: 20px;
     z-index: 1;
 }
+
+/* Custom premium map tooltips */
+.custom-map-tooltip {
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(45, 212, 191, 0.4) !important;
+    color: #f8fafc !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    pointer-events: none !important;
+}
+
+.leaflet-tooltip-top.custom-map-tooltip::before {
+    border-top-color: rgba(45, 212, 191, 0.4) !important;
+}
