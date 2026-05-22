@@ -12,7 +12,9 @@ const api = {
     isAuthenticated: () => !!localStorage.getItem('milaap_token'),
 
     async request(endpoint, method = 'GET', body = null, isMultipart = false) {
-        const headers = {};
+        const headers = {
+            'ngrok-skip-browser-warning': 'true'
+        };
         if (!isMultipart) headers['Content-Type'] = 'application/json';
         
         const token = this.getToken();
