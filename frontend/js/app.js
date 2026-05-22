@@ -296,6 +296,18 @@ const ui = {
         } catch (err) { utils.toast(err.message, 'error'); } finally { utils.spin(false); }
     },
 
+    async claimMatch(matchId) {
+        utils.spin(true);
+        try {
+            const res = await api.post(`/matches/${matchId}/claim`);
+            this.openVerifyModal(matchId, res.secret_question, res.attempts_remaining);
+        } catch (err) {
+            utils.toast(err.message, 'error');
+        } finally {
+            utils.spin(false);
+        }
+    },
+
     openVerifyModal(matchId, question, remaining) {
         const modal = document.getElementById('verify-modal');
         document.getElementById('verify-match-id').value = matchId;
@@ -333,6 +345,20 @@ const ui = {
             utils.toast('Item successfully returned! Case resolved.');
             router.navigate('dashboard');
         } catch (err) { utils.toast(err.message, 'error'); } finally { utils.spin(false); }
+    },
+
+    async rejectMatch(matchId) {
+        if (!confirm('Are you sure you want to discard this match? It will be permanently removed from your view.')) return;
+        utils.spin(true);
+        try {
+            await api.patch(`/matches/${matchId}/reject`);
+            utils.toast('Match discarded.', 'success');
+            matchesPage.render();
+        } catch (err) {
+            utils.toast(err.message, 'error');
+        } finally {
+            utils.spin(false);
+        }
     }
 };
 
@@ -378,10 +404,22 @@ const landingPage = {
 };
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const hashPage = window.location.hash.replace('#', '');
 
     if (api.isAuthenticated()) {
+        try {
+            // Proactively sync user profile into localStorage to avoid stale cache issues
+            const data = await api.get('/users/me/dashboard');
+            if (data && data.user) {
+                if (data.user.id) localStorage.setItem('milaap_user_id', data.user.id);
+                localStorage.setItem('milaap_user_name', data.user.name);
+                localStorage.setItem('milaap_is_admin', data.user.is_admin);
+            }
+        } catch (err) {
+            console.error('Failed to sync profile on load', err);
+        }
+
         const isAdmin = localStorage.getItem('milaap_is_admin') === 'true';
         if (hashPage && router.routes[hashPage]) {
             router.navigate(hashPage);

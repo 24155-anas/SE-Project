@@ -89,7 +89,7 @@ class Report(Base):
     user: Mapped["User"] = relationship(back_populates="reports", lazy="selectin")
 
     location_hub_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("location_hubs.id"))
-    location_hub: Mapped["LocationHub | None"] = relationship(back_populates="reports")
+    location_hub: Mapped["LocationHub | None"] = relationship(back_populates="reports", lazy="selectin")
 
     lost_matches: Mapped[list["Match"]] = relationship(
         foreign_keys="Match.lost_report_id",

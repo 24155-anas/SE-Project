@@ -7,12 +7,20 @@ const matchesPage = {
         utils.spin(true);
         
         try {
-            const matches = await api.get('/matches/my');
+            const [matches, dashData] = await Promise.all([
+                api.get('/matches/my'),
+                api.get('/users/me/dashboard')
+            ]);
+            
+            if (dashData && dashData.user && dashData.user.id) {
+                localStorage.setItem('milaap_user_id', dashData.user.id);
+            }
+            
             const currentUser = { id: localStorage.getItem('milaap_user_id') };
 
-            // Group by user's own reports
+            // Group by user's own reports, filter out rejected matches
             const groups = {};
-            matches.forEach(m => {
+            matches.filter(m => m.status !== 'rejected').forEach(m => {
                 const myReport = m.lost_report.user_id === currentUser.id ? m.lost_report : m.found_report;
                 if (!groups[myReport.id]) groups[myReport.id] = { report: myReport, matches: [] };
                 groups[myReport.id].matches.push(m);

@@ -245,6 +245,31 @@ async def resolve_match(
     
     return {"detail": "Match marked as resolved"}
 
+@router.patch("/{match_id}/reject", status_code=status.HTTP_200_OK)
+async def reject_match(
+    match_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark a match as rejected by the owner."""
+    result = await db.execute(select(Match).where(Match.id == match_id))
+    match = result.scalar_one_or_none()
+
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+        
+    # Verify the user owns the lost report
+    lr_r = await db.execute(select(Report).where(Report.id == match.lost_report_id))
+    lr = lr_r.scalar_one_or_none()
+    
+    if not lr or lr.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only the owner of the lost report can reject the match")
+
+    match.status = "rejected"
+    match.rejected_at = datetime.now(timezone.utc)
+    
+    return {"detail": "Match marked as rejected"}
+
 @router.get("/report/{report_id}", response_model=list[MatchDetail])
 async def get_matches_for_report(
     report_id: UUID,

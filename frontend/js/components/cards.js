@@ -102,14 +102,19 @@ const components = {
         const pct = Math.round(m.similarity_score * 100);
 
         let actionArea = '';
-        if (m.status === 'notified') {
+        if (m.status === 'notified' || m.status === 'claimed') {
             if (isMyLostReport) {
+                const btnText = m.status === 'claimed' ? 'Verify Ownership' : 'Yes, Claim This!';
+                const onClick = m.status === 'claimed' 
+                    ? `ui.openVerifyModal('${m.id}', '${m.lost_report.secret_question}', ${m.max_attempts - m.verification_attempts})`
+                    : `ui.claimMatch('${m.id}')`;
+
                 actionArea = `
                     <div class="space-y-4 pt-4 border-t border-slate-800">
                         <p class="text-xs font-bold text-teal-400 flex items-center gap-2">💡 This looks like yours?</p>
                         <div class="flex gap-4">
-                            <button onclick="ui.openVerifyModal('${m.id}', '${m.lost_report.secret_question}', ${m.max_attempts - m.verification_attempts})" class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all">Yes, Claim This!</button>
-                            <button class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all border border-slate-700">Not Mine</button>
+                            <button onclick="${onClick}" class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all">${btnText}</button>
+                            <button onclick="ui.rejectMatch('${m.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all border border-slate-700">Not Mine</button>
                         </div>
                     </div>
                 `;
@@ -118,8 +123,8 @@ const components = {
                     <div class="p-4 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-start gap-4">
                         <div class="text-amber-500 mt-1"><i data-lucide="hourglass" class="w-5 h-5"></i></div>
                         <div>
-                            <p class="text-sm font-bold text-amber-500 mb-1">Status: Owner is verifying...</p>
-                            <p class="text-xs text-slate-500">Waiting for them to verify ownership through the secret question.</p>
+                            <p class="text-sm font-bold text-amber-500 mb-1">Status: ${m.status === 'claimed' ? 'Owner is verifying...' : 'Waiting for owner...'}</p>
+                            <p class="text-xs text-slate-500">${m.status === 'claimed' ? 'Waiting for them to verify ownership through the secret question.' : 'Waiting for them to start the claim process.'}</p>
                         </div>
                     </div>
                 `;

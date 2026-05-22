@@ -9,6 +9,7 @@ const dashboardPage = {
         try {
             const data = await api.get('/users/me/dashboard');
             localStorage.setItem('milaap_user_name', data.user.name);
+            if (data.user.id) localStorage.setItem('milaap_user_id', data.user.id);
             navbar.render();
 
             app.innerHTML = `

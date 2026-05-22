@@ -104,6 +104,7 @@ async def get_dashboard_data(
 
     return {
         "user": {
+            "id": str(current_user.id),
             "name": current_user.name or current_user.email.split("@")[0],
             "email": current_user.email,
             "is_admin": current_user.is_admin
