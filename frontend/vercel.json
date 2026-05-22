@@ -1,6 +1,7 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/static/(.*)", "destination": "/$1" }
-  ]
+    "cleanUrls": true,
+    "rewrites": [
+        { "source": "/static/(.*)", "destination": "/$1" },
+        { "source": "/((?!js/|css/|images/|assets/).*)", "destination": "/index.html" }
+    ]
 }
