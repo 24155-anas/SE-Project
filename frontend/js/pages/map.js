@@ -69,18 +69,20 @@ const mapPage = {
                 const marker = L.marker([hub.lat, hub.lng], {
                     icon: L.divIcon({
                         className: 'custom-div-icon',
-                        html: `<div class="w-10 h-10 rounded-full teal-gradient border-2 border-slate-900 shadow-xl flex items-center justify-center text-slate-950 font-black text-xs scale-75 hover:scale-110 transition-transform"><i data-lucide="map-pin" class="w-5 h-5"></i></div>`,
-                        iconSize: [30, 42],
-                        iconAnchor: [15, 42]
+                        html: `
+                            <div class="flex flex-col items-center gap-1 scale-75 hover:scale-110 transition-transform duration-300" style="margin-top: -30px;">
+                                <div class="w-10 h-10 rounded-full teal-gradient border-2 border-slate-900 shadow-xl flex items-center justify-center text-slate-950">
+                                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                </div>
+                                <div class="px-2.5 py-1 bg-slate-950/90 border border-teal-500/40 rounded-lg text-white font-black text-[9px] uppercase tracking-wider whitespace-nowrap shadow-lg backdrop-blur-md">
+                                    ${hub.name}
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [120, 70],
+                        iconAnchor: [60, 35]
                     })
                 }).addTo(this.map);
-
-                marker.bindTooltip(hub.name, {
-                    permanent: true,
-                    direction: 'top',
-                    offset: [0, -35],
-                    className: 'custom-map-tooltip animate-in fade-in zoom-in duration-300'
-                });
 
                 marker.on('click', () => this.selectHub(hub));
                 

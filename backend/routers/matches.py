@@ -15,6 +15,7 @@ from backend.database import get_db
 from backend.models import ClaimAttempt, Match, Notification, Report, User
 from backend.routers.auth import get_current_user
 from backend.schemas import MatchDetail, VerifyMatchRequest, VerifyMatchResponse
+from backend.services import qdrant_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/matches", tags=["matches"])
@@ -301,6 +302,13 @@ async def resolve_match(
     
     lr.status = "claimed"
     fr.status = "claimed"
+    
+    # Update payload in Qdrant so they are excluded from future matching
+    try:
+        await qdrant_service.update_payload(str(lr.id), {"status": "claimed"})
+        await qdrant_service.update_payload(str(fr.id), {"status": "claimed"})
+    except Exception as e:
+        logger.error(f"Failed to update Qdrant payload: {e}")
     
     return {"detail": "Match marked as resolved"}
 
